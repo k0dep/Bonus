@@ -12,10 +12,11 @@ namespace Controllers
         /// </summary>
         void Initialize();
 
-        /// <summary>
-        /// Обновление логики сгорания шаров(возможных)
-        /// </summary>
-        void UpdateField();
+        void FireEntities();
+
+        void FireEntity(IEntityModel entity);
+
+        void FallEntities();
 
         /// <summary>
         /// Добавить новых сущностей

@@ -63,10 +63,22 @@ namespace Models
             get { return _fieldHeight / _rows; }
         }
 
+        public Vector3 CenterOffset
+        {
+            get { return new Vector3(HorizontalFactor / 2, 0.1f, 0); }
+        }
+
+
+        public Vector3 GetFieldWorldPositionCorner(Vector2Int point)
+        {
+            return _gameFieldOrigin.TransformPoint(
+                new Vector3(point.x * HorizontalFactor, point.y * VerticalFactor, 0));
+        }
 
         public Vector3 GetFieldWorldPosition(Vector2Int point)
         {
-            return _gameFieldOrigin.TransformPoint(new Vector3(point.x * HorizontalFactor, point.y * VerticalFactor, 0));
+            return _gameFieldOrigin.TransformPoint(
+                new Vector3(point.x * HorizontalFactor, point.y * VerticalFactor, 0) + CenterOffset);
         }
 
         
@@ -80,7 +92,7 @@ namespace Models
             var x = closedPoint.x / HorizontalFactor;
             var y = closedPoint.y / VerticalFactor;
             
-            return new Vector2Int((int) Math.Round(x), (int) Math.Round(y));
+            return new Vector2Int((int) x, (int) y);
         }
     }
 }

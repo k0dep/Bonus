@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Models
 {
+    [Serializable]
     public class EntityModel : IEntityModel
     {
         public int Type { get; set; }

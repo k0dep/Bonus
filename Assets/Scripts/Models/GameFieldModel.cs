@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Extensions;
 using UnityEngine;
 
 namespace Models
@@ -11,12 +13,15 @@ namespace Models
     public class GameFieldModel
     {
         public IList<IEntityModel> Entities { get; set; }
+        public IEntityModel MovableEntity { get; set; }
         public IFieldDimensionModel FieldDimension { get; set; }
+        public ICollection<IEntityModel> BonusEntities { get; set; }
 
         public GameFieldModel(IFieldDimensionModel fieldDimension)
         {
             FieldDimension = fieldDimension;
             Entities = new List<IEntityModel>();
+            BonusEntities = new List<IEntityModel>();
         }
         
         public IEntityModel[,] GenerateEntityMap()
@@ -36,6 +41,53 @@ namespace Models
             }
             
             return map;
+        }
+        
+        public SidesPossiblePositions GetSidePosibless(Vector2Int fieldPosition, IEntityModel[,] map)
+        {
+            var dimension = GetMapDimensions(map);
+            if (!IsPointInField(fieldPosition, dimension))
+            {
+                throw new Exception("Точка вне границ игрового поля");
+            }
+
+            var result = new SidesPossiblePositions();
+
+            var currentPosition = fieldPosition;
+
+            while (true)
+            {
+                currentPosition = currentPosition + new Vector2Int(-1, 0);
+                if(!IsPointInField(currentPosition, dimension))
+                {
+                    break;
+                }
+                
+                if (map[currentPosition.x, currentPosition.y] == null)
+                {
+                    result.Left = currentPosition;
+                    break;
+                }
+            }
+            
+            currentPosition = fieldPosition;
+            
+            while (true)
+            {
+                currentPosition = currentPosition + new Vector2Int(1, 0);
+                if(!IsPointInField(currentPosition, dimension))
+                {
+                    break;
+                }
+                
+                if (map[currentPosition.x, currentPosition.y] == null)
+                {
+                    result.Right = currentPosition;
+                    break;
+                }
+            }
+            
+            return result;
         }
 
         public IEnumerable<IEnumerable<IEntityModel>> ExtractMatches(IEntityModel[,] map)
@@ -65,6 +117,35 @@ namespace Models
             }
 
             return resultMatches;
+        }
+
+        public IEntityModel Raycast(IEntityModel[,] map, Vector2Int origin, Vector2Int direction)
+        {
+            var currentPosition = origin;
+            var target = currentPosition + direction;
+            
+            while (currentPosition != target)
+            {
+                currentPosition = currentPosition + direction.ClampOne();
+                if(!IsPointInField(currentPosition, currentPosition))
+                {
+                    break;
+                }
+                
+                if (map[currentPosition.x, currentPosition.y] == null)
+                {
+                    continue;
+                }
+
+                return map[currentPosition.x, currentPosition.y];
+            }
+
+            return null;
+        }
+
+        public IEntityModel Raycast(Vector2Int origin, Vector2Int direction)
+        {
+            return Raycast(GenerateEntityMap(), origin, direction);
         }
 
         protected virtual IEnumerable<IEntityModel> ExtractSingleMatchAtPoint(Vector2Int point, IEntityModel[,] map, bool[,] markers)
@@ -97,7 +178,7 @@ namespace Models
                 }
 
                 var matchEntity = map[lookPoint.x, lookPoint.y];
-                if (matchEntity != null && matchEntity.Type == entity.Type)
+                if (matchEntity != null && matchEntity.Type == entity.Type && !IsEntityFall(lookPoint, map))
                 {
                     resultMatch.AddRange(ExtractSingleMatchAtPoint(lookPoint, map, markers));
                 }
@@ -129,6 +210,43 @@ namespace Models
             }
 
             return resultEntities;
+        }
+
+        public IEnumerable<IEntityModel> GetRow(uint row)
+        {
+            return Entities.Where(entity =>
+            {
+                var fieldPosition = FieldDimension.GetFieldPositionFromWorld(entity.WorldPosition);
+                return fieldPosition.y == row;
+            });
+        }
+
+        public IEnumerable<IEntityModel> GetFrezeEntities()
+        {
+            return GetFrezeEntities(GenerateEntityMap());
+        }
+        
+        public IEnumerable<IEntityModel> GetFrezeEntities(IEntityModel[,] map)
+        {
+            var result = new List<IEntityModel>();
+            foreach (var entityModel in Entities)
+            {
+                if (IsEntityFall(FieldDimension.GetFieldPositionFromWorld(entityModel.WorldPosition), map))
+                {
+                    continue;
+                }
+                result.Add(entityModel);
+            }
+            return result;
+        }
+
+        public IEnumerable<IEntityModel> ExceptRow(IEnumerable<IEntityModel> entities, uint row)
+        {
+            return entities.Where(entity =>
+            {
+                var fieldPosition = FieldDimension.GetFieldPositionFromWorld(entity.WorldPosition);
+                return fieldPosition.y != row;
+            });
         }
 
         public bool IsEntityFall(Vector2Int point, IEntityModel[,] map)

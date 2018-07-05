@@ -1,14 +1,13 @@
 ﻿using Models;
+using Services;
 using UnityEngine;
 
 namespace Controllers
 {
     public class EntityController : MonoBehaviour, IEntityController
     {
-        private Vector3 startPosition;
-        private Vector3 endPosition;
-        private float fallElapsed = 0;
-        private float fallTime = 0;
+        private readonly ForceService fallForce = new ForceService();
+        private readonly ForceService slideForce = new ForceService();
         
         
         public IEntityModel Model { get; set; }
@@ -21,15 +20,19 @@ namespace Controllers
         
         public void Fall(Vector3 point, float travelTime)
         {
-            startPosition = transform.position;
-            endPosition = point;
-            fallElapsed = 0;
-            fallTime = travelTime;
+            var lookTarget = point - transform.position;
+            fallForce.Set(lookTarget.normalized, lookTarget.magnitude, travelTime);
         }
 
-        public void Slide(Vector3 point, float slodeTime)
+        public void Slide(Vector3 point, float slideTime)
         {
-            throw new System.NotImplementedException();
+            if (!slideForce.IsTimeout)
+            {
+                return;
+            }
+            
+            var lookTarget = point - transform.position;
+            slideForce.Set(lookTarget.normalized, lookTarget.magnitude, slideTime);
         }
 
         public void Fire()
@@ -37,18 +40,16 @@ namespace Controllers
             Destroy(gameObject);
         }
 
+        public void SetActive()
+        {
+        }
+
 
         public void Update()
         {
             Model.WorldPosition = transform.position;
-            
-            if (fallElapsed >= fallTime)
-            {
-                return;
-            }
-
-            fallElapsed += Time.deltaTime;
-            transform.position = Vector3.Lerp(startPosition, endPosition, fallElapsed);
+            fallForce.Apply(transform);
+            slideForce.Apply(transform);
         }
     }
 }
