@@ -11,6 +11,10 @@ namespace Controllers
         
         
         public IEntityModel Model { get; set; }
+
+
+        public GameObject ActivityGameObject;
+        public GameObject BonusGameObject;
         
         
         void Start()
@@ -40,8 +44,14 @@ namespace Controllers
             Destroy(gameObject);
         }
 
-        public void SetActive()
+        public void SetActive(bool isActive)
         {
+            ActivityGameObject.SetActive(isActive);
+        }
+
+        public void SetBonus(bool isBonus)
+        {
+            BonusGameObject.SetActive(isBonus);
         }
 
 

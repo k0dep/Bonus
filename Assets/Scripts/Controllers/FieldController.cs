@@ -124,9 +124,14 @@ namespace Controllers
                 lastSpawnedPrefab = null;
             }
 
+            if (FieldModel.MovableEntity != null)
+            {
+                var movableController = EntityMapperService.GetController(FieldModel.MovableEntity);
+                movableController.SetActive(false);
+            }
             FieldModel.MovableEntity = newEntities.Random();
             var activEntityController = EntityMapperService.GetController(FieldModel.MovableEntity);
-            activEntityController.SetActive();
+            activEntityController.SetActive(true);
         }
         
         public void MoveEntity(bool IsRight)

@@ -123,11 +123,12 @@ namespace Models
         {
             var currentPosition = origin;
             var target = currentPosition + direction;
+            var mapDimension = GetMapDimensions(map);
             
             while (currentPosition != target)
             {
                 currentPosition = currentPosition + direction.ClampOne();
-                if(!IsPointInField(currentPosition, currentPosition))
+                if(!IsPointInField(currentPosition, mapDimension))
                 {
                     break;
                 }

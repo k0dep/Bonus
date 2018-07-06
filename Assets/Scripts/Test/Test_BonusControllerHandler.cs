@@ -1,4 +1,5 @@
-﻿using Controllers;
+﻿using System.Linq;
+using Controllers;
 using Messages;
 using Models;
 using Poster;
@@ -23,6 +24,7 @@ namespace Test
         {
             MessageBinder.Bind<AssignEntityBonusMessage>(msg => Debug.Log("Выбрана бонучкая сущность"));
             MessageBinder.Bind<EntityFireMessage>(msg => Controller.EntityFired(msg.Entity));
+            MessageBinder.Bind<ActivateBonusMessage>(msg => Debug.Log($"Активирован бонус, сгорело {msg.FiredEntitiesByBonus.Count()} сущностей"));
         }
         
         void OnGUI()

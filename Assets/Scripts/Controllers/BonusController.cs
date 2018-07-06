@@ -1,7 +1,9 @@
-﻿using Extensions;
+﻿using System.Linq;
+using Extensions;
 using Messages;
 using Models;
 using Poster;
+using Services;
 using UnityEngine;
 
 namespace Controllers
@@ -9,14 +11,11 @@ namespace Controllers
     public class BonusController
     {
         public readonly GameFieldModel FieldModel;
-
         public readonly IFieldDimensionModel FieldDimensionModel;
-
         public readonly GameConfigModel ConfigModel;
-
         public readonly IMessageSender MessageSender;
-
         public readonly IFieldController FieldController;
+        public readonly EntityMapperService MapperService;
 
         private bool isFiring;
         
@@ -24,13 +23,15 @@ namespace Controllers
             GameConfigModel configModel,
             IMessageSender messageSender,
             IFieldDimensionModel fieldDimensionModel,
-            IFieldController fieldController)
+            IFieldController fieldController,
+            EntityMapperService mapperService)
         {
             FieldModel = fieldModel;
             ConfigModel = configModel;
             MessageSender = messageSender;
             FieldDimensionModel = fieldDimensionModel;
             FieldController = fieldController;
+            MapperService = mapperService;
         }
         
         
@@ -42,12 +43,21 @@ namespace Controllers
             }
             
             FieldModel.BonusEntities.Add(model);
+            var entityController = MapperService.GetController(model);
+            entityController.SetBonus(true);
 
             MessageSender.Send(new AssignEntityBonusMessage {EntityModel = model});
         }
 
         public void EntityFired(IEntityModel model)
         {
+            if (FieldModel.BonusEntities.Contains(model))
+            {
+                FieldModel.BonusEntities.Remove(model);
+                var entityController = MapperService.GetController(model);
+                entityController.SetBonus(false);
+            }
+            
             if (isFiring)
             {
                 return;
@@ -56,12 +66,14 @@ namespace Controllers
             isFiring = true;
             
             var hasBonus = false;
+
+            var bonusEntitiesSnapshot = FieldModel.BonusEntities.ToList();
             
-            foreach (var fieldModelBonusEntity in FieldModel.BonusEntities)
+            foreach (var fieldModelBonusEntity in bonusEntitiesSnapshot)
             {
+                var firedEntityPosition = FieldDimensionModel.GetFieldPositionFromWorld(model.WorldPosition);
                 var position = FieldDimensionModel.GetFieldPositionFromWorld(fieldModelBonusEntity.WorldPosition);
-                var raycastEntity = FieldModel.Raycast(position, new Vector2Int(0, 1));
-                if (raycastEntity == null || raycastEntity != model)
+                if ((position + new Vector2Int(0, 1)) != firedEntityPosition)
                 {
                     continue;
                 }
@@ -71,7 +83,10 @@ namespace Controllers
 
             if (hasBonus)
             {
-                var bottomRow = FieldModel.GetRow(0);
+                var bottomRow = FieldModel.GetRow(0).ToList();
+                
+                MessageSender.Send(new ActivateBonusMessage { FiredEntitiesByBonus = bottomRow });
+                
                 foreach (var fireEntity in bottomRow)
                 {
                     FieldController.FireEntity(fireEntity);
