@@ -23,6 +23,8 @@ namespace Controllers
         /// </summary>
         void SpawnEntities();
 
+        void Reset();
+
         /// <summary>
         /// Попытка контролировать положение сущности(сдвинуть)
         /// </summary>

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Controllers
 {
-    public class BonusController
+    public class BonusController : IBonusController
     {
         public readonly GameFieldModel FieldModel;
         public readonly IFieldDimensionModel FieldDimensionModel;
@@ -108,6 +108,11 @@ namespace Controllers
             
             var randomEntity = withoutBottomRows.Random();
             
+            if(randomEntity == null)
+            {
+                return;
+            }
+
             AssignEntityBonus(randomEntity);
         }
     }

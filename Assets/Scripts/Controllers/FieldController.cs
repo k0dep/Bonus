@@ -7,6 +7,7 @@ using Models;
 using Poster;
 using Services;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Controllers
 {
@@ -16,15 +17,10 @@ namespace Controllers
     public class FieldController : IFieldController
     {
         public readonly GameConfigModel ConfigModel;
-
         public readonly GameFieldModel FieldModel;
-
         public readonly IFieldDimensionModel FieldDimensionModel;
-
         public readonly IGameObjectFactory GameObjectFactory;
-
         public readonly IMessageSender MessageSender;
-
         public readonly EntityMapperService EntityMapperService;
 
         public Vector2Int? ActiveEntityUpdatePosition
@@ -81,9 +77,18 @@ namespace Controllers
 
         public void FireEntity(IEntityModel entity)
         {
-            EntityMapperService.GetController(entity).Fire();
-            FieldModel.Entities.Remove(entity);
+            var controller = EntityMapperService.GetController(entity);
+
+            if(controller == null)
+            {
+                return;
+            }
+
+            controller.Fire();
+
             MessageSender.Send(new EntityFireMessage { Entity = entity });
+            FieldModel.Entities.Remove(entity);
+            EntityMapperService.Remove(entity);
         }
 
         public void FallEntities()
@@ -96,7 +101,7 @@ namespace Controllers
                 var entityFieldPosition = FieldDimensionModel.GetFieldPositionFromWorld(entity.WorldPosition);
                 var downWorldPosition = FieldDimensionModel.GetFieldWorldPosition(entityFieldPosition + Vector2Int.down);
                 
-                EntityMapperService.GetController(entity).Fall(downWorldPosition, ConfigModel.FallTime);
+                EntityMapperService.GetController(entity).Fall(downWorldPosition, ConfigModel.UpdateInterval);
             }
         }
 
@@ -127,7 +132,7 @@ namespace Controllers
             if (FieldModel.MovableEntity != null)
             {
                 var movableController = EntityMapperService.GetController(FieldModel.MovableEntity);
-                movableController.SetActive(false);
+                movableController?.SetActive(false);
             }
             FieldModel.MovableEntity = newEntities.Random();
             var activEntityController = EntityMapperService.GetController(FieldModel.MovableEntity);
@@ -176,6 +181,12 @@ namespace Controllers
             MessageSender.Send(new SpawnEntityMessage{ Entity = entityModel});
 
             return entityModel;
+        }
+
+        public void Reset()
+        {
+            var sceneName = SceneManager.GetActiveScene().name;
+            SceneManager.LoadScene(sceneName);
         }
     }
 

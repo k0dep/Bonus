@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Extensions;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ namespace Models
     /// <summary>
     /// Модель игрового поля
     /// </summary>
-    public class GameFieldModel
+    public class GameFieldModel : IGameFieldModel
     {
         public IList<IEntityModel> Entities { get; set; }
         public IEntityModel MovableEntity { get; set; }

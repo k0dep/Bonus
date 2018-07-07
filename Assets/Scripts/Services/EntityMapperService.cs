@@ -15,6 +15,16 @@ namespace Services
 
         public IEntityController GetController(IEntityModel model)
         {
+            if(model == null)
+            {
+                return null;
+            }
+
+            if (!_map.ContainsKey(model))
+            {
+                return null;
+            }
+
             return _map[model];
         }
 

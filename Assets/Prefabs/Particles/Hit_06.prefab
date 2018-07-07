@@ -78,6 +78,7 @@ GameObject:
   - component: {fileID: 464624}
   - component: {fileID: 19896884}
   - component: {fileID: 19903000}
+  - component: {fileID: 114555074223467488}
   m_Layer: 0
   m_Name: Hit_06
   m_TagString: Untagged
@@ -19376,7 +19377,7 @@ ParticleSystem:
       countCurve:
         serializedVersion: 2
         minMaxState: 0
-        scalar: 50
+        scalar: 20
         minScalar: 50
         maxCurve:
           serializedVersion: 2
@@ -19433,7 +19434,7 @@ ParticleSystem:
       countCurve:
         serializedVersion: 2
         minMaxState: 0
-        scalar: 30
+        scalar: 10
         minScalar: 30
         maxCurve:
           serializedVersion: 2
@@ -28018,3 +28019,15 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 180950}
   m_IsPrefabParent: 1
+--- !u!114 &114555074223467488
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 180950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e01b751713adb44a91b75c5c56e83ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DestroyAfter: 1.8
